@@ -11,12 +11,7 @@ change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
 template: |
 
  ## Overview
-  <!-- This will include content from the RELEASE_NOTES.md file -->
-  {% if exists('RELEASE_NOTES.md') %}
-  {% include 'RELEASE_NOTES.md' %}
-  {% else %}
-  No additional release notes provided.
-  {% endif %}
+  -
 
  ## What's Changed
   $CHANGES
