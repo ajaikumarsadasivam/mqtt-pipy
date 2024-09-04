@@ -29,8 +29,9 @@ jobs:
     - name: Calculate New Version
       id: new_version
       run: |
+        version=${{ env.latest_tag#v }}
         # Split the version number into an array
-        IFS='.' read -r -a version_parts <<< "${{ env.latest_tag#v }}"
+        IFS='.' read -r -a version_parts <<< "$version"
 
         # Increment the patch version (you can adjust this logic for minor or major versions)
         major=${version_parts[0]}
