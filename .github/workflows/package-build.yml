@@ -61,7 +61,7 @@ jobs:
 
     - name: Package the Release (tar.gz)
       run: |
-        tar --exclude='.[^/]*' -czvf release-${{ env.new_version }}.tar.gz ./
+        tar --exclude='.[^/]*' -czvf release-${{ env.new_version }}.tar.gz ./ --warning=no-file-changed
         echo "Release package created: release-${{ env.new_version }}.tar.gz"
 
     - name: Package the Release (zip)
