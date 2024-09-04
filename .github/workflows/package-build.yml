@@ -52,8 +52,8 @@ jobs:
 
     - name: Create New Tag
       run: |
-        git config --global user.name "ajaikumarsadasivam"
-        git config --global user.email "ajaikumar.sadasivam@gmail.com"
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
         git tag ${{ env.new_version }}
         git push origin ${{ env.new_version }}
       env:
@@ -61,12 +61,12 @@ jobs:
 
     - name: Package the Release (tar.gz)
       run: |
-        tar --exclude='.[^/]*' -czvf release-${{ env.new_version }}.tar.gz .
+        tar --exclude='.[^/]*' -czvf release-${{ env.new_version }}.tar.gz ./
         echo "Release package created: release-${{ env.new_version }}.tar.gz"
 
     - name: Package the Release (zip)
       run: |
-        zip -r release-${{ env.new_version }}.zip . -x "*/.*"
+        zip -r release-${{ env.new_version }}.zip . -x ".*"
         echo "Release package created: release-${{ env.new_version }}.zip"
 
 
