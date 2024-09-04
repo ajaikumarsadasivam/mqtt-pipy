@@ -72,7 +72,20 @@ jobs:
         zip -r release-${{ env.new_version }}.zip ./*
         echo "Release package created: release-${{ env.new_version }}.zip"
 
+    - name: Release Drafter
+      id: draft_release     
+      uses: release-drafter/release-drafter@v5
+      with:
+        config-name: release-drafter.yml
+        tag_name: ${{ env.new_version }}
+        release_name: Release ${{ env.new_version }}
+        draft: false
+        prerelease: false        
+      env:
+        GITHUB_TOKEN: ${{ secrets.WF_GITHUB_TOKEN }}
+
     - name: Create GitHub Release
+      id: create_release    
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.WF_GITHUB_TOKEN }}
@@ -81,8 +94,7 @@ jobs:
         release_name: Release ${{ env.new_version }}
         draft: false
         prerelease: false
-        body: |
-          Release version ${{ env.new_version }}.
+        body: ${{ steps.draft_release.outputs.body }}
 
     - name: Upload Release Assets
       uses: actions/upload-artifact@v3
