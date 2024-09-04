@@ -1,4 +1,4 @@
-name: Build and Release Package
+name: Build and Release
 
 on:
   push:
@@ -11,28 +11,62 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.9"
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Get Latest Tag
+      id: get_latest_tag
+      run: |
+        # Get the latest tag
+        latest_tag=$(git describe --tags git rev-list --tags --max-count=1)
+        echo "Latest tag: $latest_tag"
+        # If no tags are found, start with v0.0.0
+        if [ -z "$latest_tag" ]; then
+          latest_tag="v0.0.0"
+        fi
+        echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+
+    - name: Calculate New Version
+      id: new_version
+      run: |
+        # Split the version number into an array
+        IFS='.' read -r -a version_parts <<< "${{ env.latest_tag#v }}"
+
+        # Increment the patch version (you can adjust this logic for minor or major versions)
+        major=${version_parts[0]}
+        minor=${version_parts[1]}
+        patch=${version_parts[2]}
+        patch=$((patch + 1))
+
+        # Construct the new version
+        new_version="v$major.$minor.$patch"
+        echo "New version: $new_version"
+        echo "new_version=$new_version" >> $GITHUB_ENV
+        echo "::set-output name=tag_name::$new_version"
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Create release package (Zip)
-      run: |
-        zip -r mqtt-pipy.zip ./* -x "*/.*"
 
-    - name: Create release package (Tarball)
+    - name: Create New Tag
       run: |
-        tar --exclude='.[^/]*' -czvf mqtt-pipy.tar.gz ./*
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git tag ${{ env.new_version }}
+        git push origin ${{ env.new_version }}
 
-    - name: Upload release asset
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-package
-        path: mqtt-pipy.zip # or mqtt-pipy.tar.gz
+    - name: Package the Release (tar.gz)
+      run: |
+        tar --exclude='.[^/]*' -czvf release-${{ env.new_version }}.tar.gz .
+        echo "Release package created: release-${{ env.new_version }}.tar.gz"
+
+    - name: Package the Release (zip)
+      run: |
+        zip -r release-${{ env.new_version }}.zip . -x "*/.*"
+        echo "Release package created: release-${{ env.new_version }}.zip"
+
+
 
   publish:
     runs-on: ubuntu-latest
@@ -42,23 +76,26 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Publish GitHub Release
-      id: create_release
+    - name: Create GitHub Release
       uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.WF_GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ env.new_version }}
+        release_name: Release ${{ env.new_version }}
         draft: false
         prerelease: false
         body: |
-          Release version ${{ github.ref }}.
-      env:
-        GITHUB_TOKEN: ${{ secrets.WF_GITHUB_TOKEN }}
+          Release version ${{ env.new_version }}.
+        files: |
+          release-${{ env.new_version }}.tar.gz
+          release-${{ env.new_version }}.zip
 
-    - name: Upload release asset
-      uses: actions/upload-release-asset@v1
+    - name: Upload Release Assets
+      uses: actions/upload-artifact@v3
       with:
+        name: release-artifacts
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: mqtt-pipy.zip # or mqtt-pipy.tar.gz
-        asset_name: mqtt-pipy.zip # or mqtt-pipy.tar.gz
-        asset_content_type: application/zip # or application/gzip
+        path: |
+          release-${{ env.new_version }}.tar.gz
+          release-${{ env.new_version }}.zip
