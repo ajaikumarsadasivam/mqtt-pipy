@@ -29,7 +29,7 @@ jobs:
     - name: Calculate New Version
       id: new_version
       run: |
-        version=${{ env.latest_tag#v }}
+        version=${latest_tag#v}
         # Split the version number into an array
         IFS='.' read -r -a version_parts <<< "$version"
 
