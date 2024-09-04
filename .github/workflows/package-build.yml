@@ -52,8 +52,8 @@ jobs:
 
     - name: Create New Tag
       run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
+        git config --global user.name "ajaikumarsadasivam"
+        git config --global user.email "ajaikumar.sadasivam@gmail.com"
         git tag ${{ env.new_version }}
         git push origin ${{ env.new_version }}
       env:
