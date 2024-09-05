@@ -34,17 +34,17 @@ def my_callback(topic, msg):
     json_acceptable_string = msg.replace("'", "\"")
     msg = json.loads(json_acceptable_string)
     if msg['led'] == 'red':
-        if msg['state'] == 'on':
+        if msg['state'] == 1:
             led_red.on()
         else:
             led_red.off()
     elif msg['led'] == 'green':
-        if msg['state'] == 'on':
+        if msg['state'] == 1:
             led_green.on()
         else:
             led_green.off()
     elif msg['led'] == 'blue':
-        if msg['state'] == 'on':
+        if msg['state'] == 1:
             led_blue.on()
         else:
             led_blue.off()
